@@ -1,0 +1,189 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <data>
+<!-- Form view for appointment data-->
+        <record model="ir.ui.view" id="view_appointment_form">
+            <field name="name">hospital.appointment.form</field>
+            <field name="model">hospital.appointment</field> <!-- name="res_model" -->
+    
+            <field name="arch" type="xml"> <!-- architecture (arch) which customises the way the model is displayed inside the view -->
+                <form string="Appointment Form">
+                    <header> <!-- for status bar(widget="stausbar" is must be) feild above the form -->
+                        <button id="button_confirm" name="action_confirm" string="Confirm" 
+                                    class="oe_highlight" states="draft" confirm="Are you sure that you want to confirm?" type="object"/>  
+                        <button id="button_done" name="action_done" string="Done" 
+                                    class="oe_highlight" states="confirm" type="object"/>
+                        <button id="button_draft" name="action_draft" string="Set To Draft" 
+                                    class="oe_highlight" states="cancel"  type="object"/>
+                        <button id="button_cancel" name="action_cancel" string="Cancel"  
+                                    states="draft,done,confirm" confirm="Are you sure that you want to cancel?" type="object"/> <!--confirm is provide confirmation msg on button click -->
+                        <field name="state" widget="statusbar" 
+                            statusbar_visible="draft,done,confirm" /> <!--options="{'clickable':'1'}"  -->
+                    </header>
+                    <sheet>
+                        <field name="image_101" widget="image" class="oe_avatar"/>
+                        <div class="oe_title">
+                        <h1>
+                            <field name="reference" readonly="1" force_save='1'/>
+                        </h1>
+                        </div>
+                        
+                        <group>
+                            <group>
+                                <field name="patient_id"/>
+                                <field name="patients_group" widget='many2many_tags'/>
+                                <field name="age"/>
+                                <field name="gender"/>  
+                                <field name="family_member_id"/>
+                                
+                            </group>
+                            <group>
+                                <field name="date_appointment"/>
+                                <field name="date_appointment_time"/>
+
+                                
+                            </group>
+                        </group>
+                        <notebook>
+                            <!-- <page string="Description">
+                                <field name="description"/>
+                                
+                            </page> -->
+                            <page string='Medicine' name="Medicine">
+                                <field name="prescription_line_ids">
+                                    <tree editable='bottom'>    <!-- using editable attribute we can add data into form  without pop-up view and we can directly add it -->
+                                        <field name="name"/>
+                                        <field name="qty"/>
+                                    </tree>
+                                </field>
+                            </page>
+                        </notebook>
+
+                    </sheet>
+                    <div class="oe_chatter">
+                        <!-- <field name="message_follower_ids"/> --> <!--used to show follower -->
+                        <field name="activity_ids"/> <!--  used for schedule activity -->
+                        <field name="message_ids"/>  <!-- used for send msg and log -->
+                    </div>
+                </form> 
+            </field>
+            
+        </record>
+
+<!-- list(tree) view for appointment data -->
+        <record model="ir.ui.view" id="view_appointment_list">
+            <field name="name">hospital.appointment.list</field>
+            <field name="model">hospital.appointment</field> <!-- name="res_model" -->
+            
+            <field name="arch" type="xml">
+                <tree string="Appointment list"> 
+                    <header>
+                        <button name="action_done" string="Mark As Done" 
+                                    class="oe_highlight"  type="object"/>
+                    </header>
+                    <field name="reference" readonly="1"/> 
+                    <!-- <field name="patient_id"/> -->
+                    <field name="name"/>
+                    <field name="family_member_id"/>
+                    <field name="age"/>
+                    <field name="gender"/>
+                    <field name="description"/>
+                    <field name="state"/>                   
+                </tree> 
+            </field>
+            
+        </record>
+
+<!--search view by default given in localhost server with only name as search feild, hence doesn't need to be specified -->
+        <record model="ir.ui.view" id="view_appointment_search">
+            <field name="name">hospital.appointment.search</field>
+            <field name="model">hospital.appointment</field> 
+            <field name="arch" type="xml">
+                <search>
+                    <field name="name"/> 
+                    
+                    <field name="gender"/>
+                    <!-- <feild name="age"/>  getting error:if i used this feild inside search view-->
+                    <field name="description"/>
+                    <filter string="Male" name="male" domain="[('gender', '=','male')]"/> 
+                    <filter string="Female" name="female" domain="[('gender', '=','female')]"/> 
+                    <group expand="1" string="Group By">     <!-- *!in group by we can only add Manytomany or regular feild -->
+                        <filter string="Gender" name="gender" context="{'group_by':'gender'}"/>
+                        <filter string="Patient name" name="patient_name" context="{'group_by':'patient_id'}"/>
+                        <filter string="Date" name='date' context="{'group_by':'date_appointment'}"/>
+                    </group>
+                    <!-- <field name="context">{'search_default_gender':1}</field> --> <!--we can't write it here because search bar model='ir.action.act_window' hence we have to write it in menuitem.xml file-->
+
+                </search>
+
+            </field>
+        </record>
+
+<!-- kanban view for appointment data-->
+        <record id="view_appointment_kanbann" model="ir.ui.view">
+            <field name="name">hospital.appointment.kanban</field>
+            <field name="model">hospital.appointment</field>
+            
+            <field name='arch' type='xml'>
+                <kanban>
+                    <field name="name"/>
+                    <field name="age"/>
+                    <field name="gender"/>
+                    <field name="description"/>
+                    <templates>
+                        <t t-name="kanban-box">
+                            <div t-attf-class="oe_kanban_card oe_kanban_global_click">
+                                <div class="oe_kanban_details">                            
+                                    <ul>
+                                        <li>Name:<field name="name"/></li>
+                                        <li>Age:<field name="description"/></li>
+                                    </ul>
+                                </div>
+                            </div>
+                        </t>
+                    </templates>
+                </kanban>
+            </field>
+        </record>
+<!-- cohort view -->
+        <record id="view_appointment_cohort" model="ir.ui.view">
+            <field name="name">hospital.appointment.cohort</field>
+            <field name="model">hospital.appointment</field>
+            <field name="arch" type="xml">
+                <cohort string="Cohorn Record" date_start="create_date" date_stop="date_closed" interval="week" mode="churn" >
+                    <!-- <field name="date_appointment"/>
+                    <field name="name"/>
+                    <field name="prescription_line_ids"/> -->
+                </cohort>
+            </field>
+        </record>
+<!-- gantt view for project scheduling(viewing the project progress) -->
+
+        <record id="view_appointment_gantt" model="ir.ui.view">
+        <field name="name">hospital.appointment.gantt</field>
+        <field name="model">hospital.appointment</field>
+        <field name="arch" type="xml">
+            <gantt   date_start="date_start" date_stop="date_closed" string="Appointments" default_group_by="date_appointment">                
+                
+                <field name="state"/>
+
+                    <templates>
+                        <div t-name="gantt-popover" class="container-fluid">
+                            <div class="row no-gutters">
+                                <div class="col">
+                                    <ul class="pl-1 mb-0 list-unstyled">
+                                        <li><strong>Start Date: </strong> <t t-esc="userTimezoneStartDate.format('L LTS')"/></li>
+                                        <li><strong>Stop Date: </strong> <t t-esc="userTimezoneStopDate.format('L LTS')"/></li>
+                                        
+                                    </ul>
+                                </div>
+                            </div>
+                        </div>
+                    </templates>
+            </gantt>
+        </field>
+    </record>
+
+    </data>
+    
+</odoo>
